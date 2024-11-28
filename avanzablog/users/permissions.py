@@ -8,7 +8,7 @@ class UserPermissions(BasePermission):
     def has_permission(self, request, view):
         if request.user.is_superuser:
             return True  # Admins pueden realizar cualquier acción
-        if request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
+        if request.method in ('POST', 'PUT', 'PATCH', 'DELETE'): # Solo los usuarios autenticados pueden escribir en la API 
             return request.user.is_authenticated and request.user.is_staff
         return True  # Usuarios autenticados pueden leer
 
