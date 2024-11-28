@@ -16,7 +16,7 @@ class BlogPost(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
       # Permissions
-    edit_access = models.CharField(max_length=20, choices=ACCESS_CHOICES, default='author', null=False)
+    post_permissions= models.CharField(max_length=20, choices=ACCESS_CHOICES, default='author', null=False)
 
   
 
