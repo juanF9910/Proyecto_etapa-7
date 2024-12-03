@@ -13,24 +13,29 @@ from users.permissions import UserPermissions
 class BlogPostViewSet(ModelViewSet):
     queryset = BlogPost.objects.all()
     serializer_class = BlogPostSerializer
-    permission_classes = [ UserPermissions]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     #vamos a crear un like dentro de un post
-    @action(detail=True, methods=['POST'], serializer_class=LikeSerializer)    
-    def like(self, request, pk=None):
+    @action(detail=True, methods=['POST', 'GET'], serializer_class=LikeSerializer)    
+    def like(self, request, pk):
         post = self.get_object() #obtenemos el objeto post
-    
-        data = request.data.copy()
-        data['post'] = post.id 
 
-        serializer = LikeSerializer(data=data)
-        if serializer.is_valid():
+        if request.method == 'GET':
+            likes = Like.objects.filter(post=post)
+            serializer = LikeSerializer(likes, many=True) #un post puede tener varios likes
+            return Response(serializer.data)
+        
+        if request.method == 'POST':
+            data = request.data.copy() #realizamos una copia de los datos del request
+            data['post'] = post.id #asignamos el id del post
+            serializer = LikeSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            #return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     #vamos a crear un comentario entro de un post
-    @action(detail=True, methods=['post'], serializer_class=CommentSerializer)
+    @action(detail=True, methods=['post', 'get'], serializer_class=CommentSerializer)
     def comment(self, request, pk=None):
         post = self.get_object() #desde el objeto post voy agregar un comentario, 
         #es decir modificar la base de datos de comentarios
@@ -51,10 +56,10 @@ class BlogPostViewSet(ModelViewSet):
 class LikeViewSet(ModelViewSet):
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
-    #permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 class CommentViewSet(ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    #permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
