@@ -1,36 +1,25 @@
-from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework import permissions
 
-class BlogPostPermission(BasePermission):
+
+class IsOwnerOrReadOnly(permissions.BasePermission):
     """
-    Custom permission to manage access to blog posts based on `post_permissions`
-    with independent controls for reading and writing.
+   Sólo el propietario del objeto puede editarlo, editar significa
+    actualizar y eliminar. put, patch, delete
     """
 
-def has_object_permission(self, request, view, obj):
-    """
-    Manage object-level permissions for individual blog post access.
-    """
-    is_read_only = request.method in SAFE_METHODS
+    #la función has_object_permission se ejecuta cada vez que 
+    # se hace una petición, está asociada a un objeto 
 
-    # Public posts: allow read-only access for all
-    if obj.post_permissions == 'public':
-        return is_read_only
+    def has_object_permission(self, request, view, obj):
 
-    # Authenticated: allow read-only access if authenticated
-    if obj.post_permissions == 'authenticated':
-        return is_read_only and request.user.is_authenticated
+        #la lista de SAFE_METHODS contiene los métodos que no modifican
+        #la base de datos, es decir, son seguros, estos son: get, head, options
+        #get es para obtener un objeto, head es para obtener la cabecera de un objeto, 
+        #la cabecera de un objeto es la información del objeto,
+        #options es para obtener las opciones de un objeto
 
-    # Team: allow read/write for same team
-    if obj.post_permissions == 'team':
-        return (
-            request.user == obj.author
-            or (hasattr(request.user, 'team') and request.user.team == obj.author.team)
-        )
+        if request.method in permissions.SAFE_METHODS:
+            return True
 
-    # Author: Only the author can read/write
-    if obj.post_permissions == 'author':
+        #verificamos si
         return obj.author == request.user
-
-    # Deny all other requests
-    return False
-

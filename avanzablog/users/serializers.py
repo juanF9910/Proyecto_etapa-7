@@ -1,6 +1,6 @@
-from .models import User, Permission
 from rest_framework import serializers
-
+from django.contrib.auth.models import User
+from .models import Permission
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

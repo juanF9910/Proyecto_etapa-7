@@ -6,9 +6,7 @@ from rest_framework import status
 
 from .models import BlogPost, Like, Comment
 from .serializers import BlogPostSerializer, LikeSerializer, CommentSerializer
-
-from .permissions import BlogPostPermission
-from users.permissions import UserPermissions
+from .permissions import IsOwnerOrReadOnly
 
 class BlogPostViewSet(ModelViewSet):
     queryset = BlogPost.objects.all()
@@ -20,7 +18,9 @@ class BlogPostViewSet(ModelViewSet):
     def like(self, request, pk):
         post = self.get_object() #obtenemos el objeto post
 
+        
         if request.method == 'GET':
+            
             likes = Like.objects.filter(post=post)
             serializer = LikeSerializer(likes, many=True) #un post puede tener varios likes
             return Response(serializer.data)
@@ -35,7 +35,7 @@ class BlogPostViewSet(ModelViewSet):
             #return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     #vamos a crear un comentario entro de un post
-    @action(detail=True, methods=['post', 'get'], serializer_class=CommentSerializer)
+    @action(detail=True, methods=['post', 'GET'], serializer_class=CommentSerializer)
     def comment(self, request, pk=None):
         post = self.get_object() #desde el objeto post voy agregar un comentario, 
         #es decir modificar la base de datos de comentarios
