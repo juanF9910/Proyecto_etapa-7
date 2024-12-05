@@ -27,7 +27,7 @@ class read_and_edit(permissions.BasePermission):
                 elif obj.post_permissions == 'team':
                     user_group = request.user.groups.first()
                     if user_group:
-                        return obj.author.groups.filter(id=user_group.id).exists()
+                        return obj.author.groups.filter(id__in=request.user.groups.values_list('id', flat=True)).exists()
                     return False
 
             # Permisos de edición o eliminación (PUT, PATCH, DELETE)
