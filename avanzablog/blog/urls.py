@@ -7,4 +7,10 @@ router.register("post", BlogPostViewSet)
 router.register("like", LikeViewSet)
 router.register("comment", CommentViewSet)
 
-urlpatterns = router.urls
+urlpatterns = [
+    # Elimina el comentario específico usando 'pk' como parámetro en lugar de 'comment_id'
+    path('post/<int:post_id>/comment/<int:pk>/', CommentViewSet.as_view({'delete': 'destroy'}), name='comment-detail'),
+]
+
+# Rutas generadas por el router
+urlpatterns += router.urls
