@@ -7,16 +7,7 @@ from rest_framework.exceptions import PermissionDenied, NotAuthenticated
 from .models import BlogPost, Like, Comment
 from .serializers import BlogPostSerializer, LikeSerializer, CommentSerializer
 from .permissions import read_and_edit
-from .pagination import  BlogPostPagination, LikePagination
-from django.db.models import Q
-from django.http import Http404
-from rest_framework import response
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework import status
-from rest_framework.exceptions import PermissionDenied, NotAuthenticated
+from .pagination import BlogPostPagination, LikePagination
 from django.db.models import Q
 from django.http import Http404
 
