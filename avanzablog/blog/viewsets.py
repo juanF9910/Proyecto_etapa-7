@@ -170,13 +170,15 @@ class CommentViewSet(ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [read_and_edit]
-    pagination_class = BlogPostPagination
+    pagination_class = BlogPostPagination #la paginación es la misma que la de los posts 
 
+    #solo pueden comentar los usuarios autenticados
     def perform_create(self, serializer):
         if not self.request.user.is_authenticated:
             raise NotAuthenticated("Debes estar autenticado para comentar.")
         serializer.save(user=self.request.user)
 
+    #solo el autor o un superusuario pueden eliminar un comentario
     def destroy(self, request, *args, **kwargs):
         comment = self.get_object()
 
@@ -185,7 +187,7 @@ class CommentViewSet(ModelViewSet):
             raise PermissionDenied("Solo el autor o un superusuario pueden eliminar este comentario.")
 
         return super().destroy(request, *args, **kwargs)
-
+    #filtrar los comentarios que se van a mostrar en la vista de lista de comentarios de acuerdo a los permisos del post
     def get_queryset(self):
         user = self.request.user
 
