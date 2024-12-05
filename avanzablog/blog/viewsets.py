@@ -65,12 +65,11 @@ class BlogPostViewSet(ModelViewSet):
     #reescribir el metodo destroy para que solo el autor o un superusuario puedan eliminar un post 
     def destroy(self, request, *args, **kwargs):
             post = self.get_object()  # Obtener el post que se intenta eliminar
-
             #si el usuario no es el autor y tampoco es un superusuario
             if post.author != request.user and not request.user.is_superuser:
-                raise PermissionDenied("Solo el autor o un superusuario pueden eliminar este post.")
+              raise PermissionDenied("Solo el autor o un superusuario pueden eliminar este post.")
 
-            # Proceder con la eliminación si los permisos son correctos
+             #Proceder con la eliminación si los permisos son correctos
             return super().destroy(request, *args, **kwargs)
     
     @action(detail=True, methods=['POST', 'GET'], serializer_class=LikeSerializer)

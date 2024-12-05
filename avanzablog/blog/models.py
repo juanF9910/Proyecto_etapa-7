@@ -1,6 +1,13 @@
 from django.db import models
 
-# Create your models here.
+#el modelo usuario se guarda en la tabla auth_user
+#que es un modelo de django que ya viene por defecto
+#en el sistema de autenticación, user tiene las propiedades
+#user.is_authenticated, user.groups, user.is_superuser
+#user.groups.first(), user.email, user.username
+#user.is_staff, user.is_active, user.is_anonymous
+#user.groups.filter(id=user_group.id).exists()
+
 from django.contrib.auth.models import User
 
 class BlogPost(models.Model):

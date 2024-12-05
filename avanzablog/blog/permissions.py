@@ -2,27 +2,21 @@ from rest_framework import permissions
 
 class read_and_edit(permissions.BasePermission):
     
-    #permisos de la vista de lista  
     def has_permission(self, request, view):
-        
-
-        #solo pueden crear post los usuarios autenticados
-        if request.method=='POST':
+        # Solo los usuarios autenticados pueden crear posts
+        if request.method == 'POST':
             return request.user.is_authenticated
-        else:
-            return True
+        return True
 
-    # permisos de la vista de detalle
     def has_object_permission(self, request, view, obj):
-        
-        #verificamos si el usuario es superusuario
+        # Permitir acceso total a superusuarios
         if request.user.is_superuser:
             return True
-        #verificamos si el usuario es blogger
-        else:
-            # permisos de lectura
+        
+        #permiso de los post
+        if hasattr(obj, 'post_permissions'):
+            # Permisos de lectura (SAFE_METHODS)
             if request.method in permissions.SAFE_METHODS:
-                
                 if obj.post_permissions == 'public':
                     return True
                 elif obj.post_permissions == 'authenticated':
@@ -30,25 +24,29 @@ class read_and_edit(permissions.BasePermission):
                 elif obj.post_permissions == 'author':
                     return obj.author == request.user
                 elif obj.post_permissions == 'team':
-                    # Comprobar si el usuario tiene un grupo
                     user_group = request.user.groups.first()
                     if user_group:
                         return obj.author.groups.filter(id=user_group.id).exists()
-                    else:
-                        return False
-                else:
                     return False
-            
-            # permisos de edición
-            else:
-                if obj.post_permissions == 'author':
-                    return obj.author == request.user
-                elif obj.post_permissions == 'team':
-                    # Comprobar si el usuario tiene un grupo
-                    user_group = request.user.groups.first()
-                    if user_group:
-                        return obj.author.groups.filter(id=user_group.id).exists()
-                    else:
-                        return False
-                else:
-                    return False
+
+            # Permisos de edición o eliminación (PUT, PATCH, DELETE)
+            elif request.method in ['PUT', 'PATCH', 'DELETE']:
+                # Permitir si es el autor
+                if obj.author == request.user:
+                    return True
+                
+                # Permitir si es del mismo equipo (team)
+                user_group = request.user.groups.first()
+                if user_group:
+                    return obj.author.groups.filter(id=user_group.id).exists()
+
+                return False
+
+        #permiso de los likes y los comentarios
+        if hasattr(obj, 'post'):
+
+            # Permitir si el usuario es el autor del comentario o es superusuario
+            return obj.user == request.user or request.user.is_superuser
+
+        # Por defecto, denegar acceso si no es BlogPost ni Comment
+        return False
