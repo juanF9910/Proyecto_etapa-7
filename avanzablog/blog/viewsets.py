@@ -10,6 +10,7 @@ from .permissions import read_and_edit
 from .pagination import  BlogPostPagination, LikePagination
 from django.db.models import Q
 from django.http import Http404
+
 class BlogPostViewSet(ModelViewSet):
 
     queryset = BlogPost.objects.all()
@@ -85,7 +86,8 @@ class BlogPostViewSet(ModelViewSet):
             # Verificar si el usuario ya ha dado like
             existing_like = Like.objects.filter(post=post, user=request.user).first()
             if existing_like:
-                return Response({"detail": "You have already liked this post."}, status=status.HTTP_400_BAD_REQUEST)
+                existing_like.delete()
+                return Response({"detail": "Diste un dislike"}, status=status.HTTP_400_BAD_REQUEST)
             else:
             # Crear un nuevo like y asignar explícitamente el post
 
@@ -128,21 +130,47 @@ class BlogPostViewSet(ModelViewSet):
 
 #esta clase permite acceder a las acciones
 #post, get, put, delete, etc de los modelos a traves de la api
+
 class LikeViewSet(ModelViewSet):
-    queryset = Like.objects.all()
+    queryset = Like.objects.all().order_by('-created_at')
     serializer_class = LikeSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [read_and_edit]
     pagination_class = LikePagination
+
     def perform_create(self, serializer):
         if not self.request.user.is_authenticated:
             raise NotAuthenticated("Debes estar autenticado para dar un like.")
         serializer.save(user=self.request.user)
 
+    def get_queryset(self):
+        user = self.request.user
+        
+        # Filtrar los 'likes' asociados a posts con los permisos adecuados
+        queryset = Like.objects.all()
+        
+        # Usuarios no autenticados solo pueden ver likes en posts públicos
+        if not user.is_authenticated:
+            queryset = queryset.filter(post__post_permissions='public')
+
+        # Usuarios autenticados: filtrar por permisos de posts
+        else:
+            queryset = queryset.filter(
+                Q(post__post_permissions='public') | 
+                Q(post__post_permissions='authenticated') | 
+                Q(post__author=user)
+            )
+
+            # Filtrar por equipo si el usuario pertenece a algún grupo
+            if user.groups.exists():
+                queryset = queryset.filter(post__post_permissions='team')
+
+        return queryset.distinct()
+
 class CommentViewSet(ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    pagination_class=BlogPostPagination
+    permission_classes = [read_and_edit]
+    pagination_class = BlogPostPagination
 
     def perform_create(self, serializer):
         if not self.request.user.is_authenticated:
@@ -157,3 +185,27 @@ class CommentViewSet(ModelViewSet):
             raise PermissionDenied("Solo el autor o un superusuario pueden eliminar este comentario.")
 
         return super().destroy(request, *args, **kwargs)
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # Filtrar los comentarios asociados a posts con los permisos adecuados
+        queryset = Comment.objects.all()
+
+        # Usuarios no autenticados solo pueden ver comentarios en posts públicos
+        if not user.is_authenticated:
+            queryset = queryset.filter(post__post_permissions='public')
+
+        # Usuarios autenticados: filtrar por permisos de posts
+        else:
+            queryset = queryset.filter(
+                Q(post__post_permissions='public') | 
+                Q(post__post_permissions='authenticated') | 
+                Q(post__author=user)
+            )
+
+            # Filtrar por equipo si el usuario pertenece a algún grupo
+            if user.groups.exists():
+                queryset = queryset.filter(post__post_permissions='team')
+
+        return queryset.distinct()

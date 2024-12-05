@@ -3,12 +3,13 @@ from rest_framework import permissions
 class read_and_edit(permissions.BasePermission):
     
     def has_permission(self, request, view):
-        # Solo los usuarios autenticados pueden crear posts
+        # Solo los usuarios autenticados pueden crear posts, likes y comentarios
         if request.method == 'POST':
             return request.user.is_authenticated
         return True
 
     def has_object_permission(self, request, view, obj):
+
         # Permitir acceso total a superusuarios
         if request.user.is_superuser:
             return True
@@ -44,9 +45,30 @@ class read_and_edit(permissions.BasePermission):
 
         #permiso de los likes y los comentarios
         if hasattr(obj, 'post'):
+            
+            if request.method in permissions.SAFE_METHODS:
+                if obj.post.post_permissions == 'public':
+                    return True
+                elif obj.post.post_permissions == 'authenticated':
+                    return request.user.is_authenticated
+                elif obj.post.post_permissions == 'author':
+                    return obj.author == request.user
+                elif obj.post.post_permissions == 'team':
+                    user_group = request.user.groups.first()
+                    if user_group:
+                        return obj.author.groups.filter(id=user_group.id).exists()
+                    return False
 
             # Permitir si el usuario es el autor del comentario o es superusuario
-            return obj.user == request.user or request.user.is_superuser
+            #return obj.user == request.user or request.user.is_superuser
+            if request.method in ['PUT', 'PATCH', 'DELETE']:
+                if obj.user == request.user:
+                    return True
+            
+                user_group = request.user.groups.first()
+                if user_group:
+                    return obj.author.groups.filter(id=user_group.id).exists()
 
+                return False
         # Por defecto, denegar acceso si no es BlogPost ni Comment
         return False

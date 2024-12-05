@@ -9,9 +9,6 @@ from rest_framework import viewsets
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    #la clase ReadOnlyModelViewSet permite acceder a las acciones
-    #get y list de los modelos a traves de la api
-    #pero no permite modificar la base de datos de usu
-   
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
