@@ -10,7 +10,7 @@ from .permissions import read_and_edit
 from .pagination import  BlogPostPagination, LikePagination
 from django.db.models import Q
 from django.http import Http404
-
+from rest_framework import response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -45,6 +45,7 @@ class BlogPostViewSet(ModelViewSet):
 
         return queryset.distinct()
 
+    #función para el caso en el que se quiera obtener un objeto
     def get_object(self):
         queryset = self.get_queryset()
         obj = queryset.filter(pk=self.kwargs["pk"]).first()
@@ -64,9 +65,9 @@ class BlogPostViewSet(ModelViewSet):
             user_group = request.user.groups.first()
             if user_group:
                 if not post.author.groups.filter(id=user_group.id).exists():
-                    raise PermissionDenied("Solo el autor, un miembro del mismo equipo o un superusuario pueden eliminar este post.")
+                    return response(status=status.HTTP_403_FORBIDDEN)
             else:
-                raise PermissionDenied("Solo el autor o un superusuario pueden eliminar este post.")
+                return response(status=status.HTTP_403_FORBIDDEN)
         
         return super().destroy(request, *args, **kwargs)
 
@@ -112,18 +113,23 @@ class BlogPostViewSet(ModelViewSet):
 
         return Response({"detail": "Método no permitido."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
+from django_filters.rest_framework import DjangoFilterBackend
 
 class LikeViewSet(ModelViewSet):
     queryset = Like.objects.all().order_by('-created_at')
     serializer_class = LikeSerializer
     permission_classes = [read_and_edit]
     pagination_class = LikePagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['post', 'user']
 
     def perform_create(self, serializer):
         if not self.request.user.is_authenticated:
             raise NotAuthenticated("Debes estar autenticado para dar un like.")
         serializer.save(user=self.request.user)
 
+    #filtramos los likes que puede ver el usuario
+    #de acuerdo a los per
     def get_queryset(self):
         user = self.request.user
         queryset = Like.objects.all()
@@ -147,6 +153,8 @@ class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = [read_and_edit]
     pagination_class = BlogPostPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['post', 'user']
 
     def perform_create(self, serializer):
         if not self.request.user.is_authenticated:

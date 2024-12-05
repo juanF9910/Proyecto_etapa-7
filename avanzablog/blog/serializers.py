@@ -5,7 +5,7 @@ class BlogPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogPost
         #el campo fields permite seleccionar los campos que se van a serializar
-        fields = ['id', 'title', 'content', 'post_permissions', 'created_at', 'updated_at']
+        fields = ['id','author','title', 'content', 'post_permissions', 'created_at', 'updated_at']
         #el campo read_only_fields permite seleccionar los campos que no se pueden modificar
         read_only_fields = ['author']
 
