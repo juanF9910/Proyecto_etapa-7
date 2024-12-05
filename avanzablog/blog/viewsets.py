@@ -40,7 +40,8 @@ class BlogPostViewSet(ModelViewSet):
             )
 
             if user.groups.exists():
-                queryset |= BlogPost.objects.filter(post_permissions='team', author__groups__in=user.groups.all())
+                queryset |= BlogPost.objects.filter(post_permissions='team', author__groups__in=user.groups.all()
+)
 
         return queryset.distinct()
 
@@ -59,7 +60,14 @@ class BlogPostViewSet(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         post = self.get_object()
         if post.author != request.user and not request.user.is_superuser:
-            raise PermissionDenied("Solo el autor o un superusuario pueden eliminar este post.")
+            # Verificar si el usuario pertenece al mismo equipo que el autor
+            user_group = request.user.groups.first()
+            if user_group:
+                if not post.author.groups.filter(id=user_group.id).exists():
+                    raise PermissionDenied("Solo el autor, un miembro del mismo equipo o un superusuario pueden eliminar este post.")
+            else:
+                raise PermissionDenied("Solo el autor o un superusuario pueden eliminar este post.")
+        
         return super().destroy(request, *args, **kwargs)
 
     @action(detail=True, methods=['POST', 'GET'], serializer_class=LikeSerializer)

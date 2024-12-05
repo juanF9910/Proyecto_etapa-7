@@ -9,12 +9,11 @@ class read_and_edit(permissions.BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
-
         # Permitir acceso total a superusuarios
         if request.user.is_superuser:
             return True
         
-        #permiso de los post
+        # Permisos de los post
         if hasattr(obj, 'post_permissions'):
             # Permisos de lectura (SAFE_METHODS)
             if request.method in permissions.SAFE_METHODS:
@@ -25,9 +24,11 @@ class read_and_edit(permissions.BasePermission):
                 elif obj.post_permissions == 'author':
                     return obj.author == request.user
                 elif obj.post_permissions == 'team':
+                    # Verificar si el usuario pertenece al mismo equipo
                     user_group = request.user.groups.first()
                     if user_group:
-                        return obj.author.groups.filter(id__in=request.user.groups.values_list('id', flat=True)).exists()
+                        # Permitir acceso si el autor pertenece al mismo equipo que el usuario
+                        return obj.author.groups.filter(id=user_group.id).exists()
                     return False
 
             # Permisos de edición o eliminación (PUT, PATCH, DELETE)
@@ -36,16 +37,16 @@ class read_and_edit(permissions.BasePermission):
                 if obj.author == request.user:
                     return True
                 
-                # Permitir si es del mismo equipo (team)
+                # Permitir si el usuario pertenece al mismo equipo que el autor
                 user_group = request.user.groups.first()
                 if user_group:
+                    # Permitir eliminación si el autor pertenece al mismo equipo que el usuario
                     return obj.author.groups.filter(id=user_group.id).exists()
 
                 return False
 
-        #permiso de los likes y los comentarios
+        # Permisos de los likes y los comentarios
         if hasattr(obj, 'post'):
-            
             if request.method in permissions.SAFE_METHODS:
                 if obj.post.post_permissions == 'public':
                     return True
@@ -60,15 +61,16 @@ class read_and_edit(permissions.BasePermission):
                     return False
 
             # Permitir si el usuario es el autor del comentario o es superusuario
-            #return obj.user == request.user or request.user.is_superuser
             if request.method in ['PUT', 'PATCH', 'DELETE']:
                 if obj.user == request.user:
                     return True
-            
+                
                 user_group = request.user.groups.first()
                 if user_group:
+                    # Verificar si el autor del comentario pertenece al mismo grupo
                     return obj.author.groups.filter(id=user_group.id).exists()
 
                 return False
+
         # Por defecto, denegar acceso si no es BlogPost ni Comment
         return False
