@@ -53,7 +53,7 @@ class read_and_edit(permissions.BasePermission):
                 elif obj.post.post_permissions == 'authenticated':
                     return request.user.is_authenticated
                 elif obj.post.post_permissions == 'author':
-                    return obj.author == request.user
+                    return obj.post.author == request.user
                 elif obj.post.post_permissions == 'team':
                     user_group = request.user.groups.first()
                     if user_group:
