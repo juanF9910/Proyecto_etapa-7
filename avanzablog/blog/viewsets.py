@@ -40,10 +40,7 @@ class BlogPostViewSet(ModelViewSet):
             )
 
             if user.groups.exists():
-                queryset |= BlogPost.objects.filter(
-                    post_permissions='team', 
-                    author__groups__in=user.groups.all()
-                )
+                queryset |= BlogPost.objects.filter(post_permissions='team', author__groups__in=user.groups.all())
 
         return queryset.distinct()
 
