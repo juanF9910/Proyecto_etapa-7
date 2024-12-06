@@ -56,9 +56,9 @@ class BlogPostViewSet(ModelViewSet):
             user_group = request.user.groups.first()
             if user_group:
                 if not post.author.groups.filter(id=user_group.id).exists():
-                    return Response(status=status.HTTP_403_FORBIDDEN)
+                    return response(status=status.HTTP_403_FORBIDDEN)
             else:
-                return Response(status=status.HTTP_403_FORBIDDEN)
+                return response(status=status.HTTP_403_FORBIDDEN)
         
         return super().destroy(request, *args, **kwargs)
 
@@ -107,7 +107,6 @@ class BlogPostViewSet(ModelViewSet):
 from django_filters.rest_framework import DjangoFilterBackend
 
 class LikeViewSet(ModelViewSet):
-
     queryset = Like.objects.all().order_by('-created_at')
     serializer_class = LikeSerializer
     permission_classes = [read_and_edit]
@@ -115,10 +114,10 @@ class LikeViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['post', 'user']
 
-    #def perform_create(self, serializer):
-        #if not self.request.user.is_authenticated:
-            #raise NotAuthenticated("Debes estar autenticado para dar un like.")
-        #serializer.save(user=self.request.user)
+    def perform_create(self, serializer):
+        if not self.request.user.is_authenticated:
+            raise NotAuthenticated("Debes estar autenticado para dar un like.")
+        serializer.save(user=self.request.user)
 
     #filtramos los likes que puede ver el usuario
     #de acuerdo a los per
@@ -148,10 +147,10 @@ class CommentViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['post', 'user']
 
-    #def perform_create(self, serializer):
-        #if not self.request.user.is_authenticated:
-            #raise NotAuthenticated("Debes estar autenticado para comentar.")
-        #serializer.save(user=self.request.user)
+    def perform_create(self, serializer):
+        if not self.request.user.is_authenticated:
+            raise NotAuthenticated("Debes estar autenticado para comentar.")
+        serializer.save(user=self.request.user)
 
     def destroy(self, request, *args, **kwargs):
         comment = self.get_object()

@@ -57,7 +57,7 @@ class read_and_edit(permissions.BasePermission):
                 elif obj.post.post_permissions == 'team':
                     user_group = request.user.groups.first()
                     if user_group:
-                        return obj.post.author.groups.filter(id=user_group.id).exists()
+                        return obj.author.groups.filter(id=user_group.id).exists()
                     return False
 
             # Permitir si el usuario es el autor del comentario o es superusuario
@@ -68,7 +68,7 @@ class read_and_edit(permissions.BasePermission):
                 user_group = request.user.groups.first()
                 if user_group:
                     # Verificar si el autor del comentario pertenece al mismo grupo
-                    return obj.post.author.groups.filter(id=user_group.id).exists()
+                    return obj.author.groups.filter(id=user_group.id).exists()
 
                 return False
 
