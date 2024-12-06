@@ -1,18 +1,19 @@
 from django.urls import path
-from rest_framework.routers import DefaultRouter
-from .viewsets import BlogPostViewSet, LikeViewSet, CommentViewSet
+from .views import (BlogPostListView, BlogPostDetailView, 
+                    LikeListView, LikeDetailView, 
+                    CommentListView, CommentDetailView, 
+                    BlogPostCreateView)
 
-router = DefaultRouter()
-router.register("post", BlogPostViewSet)
-router.register("like", LikeViewSet)
-router.register("comment", CommentViewSet)
+urlpatterns = [
 
-urlpatterns =[
+    path('posts/', BlogPostListView.as_view(), name='post-list'),
+    path('posts/<int:pk>/', BlogPostDetailView.as_view(), name='post-detail'),
+    path('posts/create/', BlogPostCreateView.as_view(), name='post-create'),
 
-    path('api/custom-post/', BlogPostViewSet.as_view({'post': 'create_custom'}), name='create_custom_post'),
-    #path('custom_post/create/', BlogPostViewSet.as_view({'post': 'create_custom'}), name='create_custom_post'),
-    path('post/<int:post_id>/comment/<int:pk>/', CommentViewSet.as_view({'delete': 'destroy', 'get': 'retrieve', 'put': 'update', 'patch': 'partial_update'}), name='comment-detail'),
+    path('likes/', LikeListView.as_view(), name='like-list'),
+    path('likes/<int:pk>/', LikeDetailView.as_view(), name='post-detail'),
+
+    path('comments/', CommentListView.as_view(), name='comment-list'),
+    path('comments/<int:pk>/', CommentDetailView.as_view(), name='comment-detail'),
 ]
-
-# Rutas generadas por el router
-urlpatterns += router.urls
+   
