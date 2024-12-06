@@ -44,10 +44,11 @@ class BlogPostViewSet(ModelViewSet):
             raise Http404("El post no se encuentra o no tienes permiso para verlo.")
         return obj
 
-    def perform_create(self, serializer):
-        if not self.request.user.is_authenticated:
-            raise NotAuthenticated("Debes estar autenticado para crear un post.")
-        serializer.save(author=self.request.user)
+    def create(self, serializer):
+        #if not self.request.user.is_authenticated:
+        #    raise NotAuthenticated("Debes estar autenticado para crear un post.")
+        #serializer.save(author=self.request.user)
+        raise PermissionDenied("No puedes crear posts de esta forma.")
 
     def destroy(self, request, *args, **kwargs):
         post = self.get_object()
@@ -61,6 +62,20 @@ class BlogPostViewSet(ModelViewSet):
                 return response(status=status.HTTP_403_FORBIDDEN)
         
         return super().destroy(request, *args, **kwargs)
+
+
+    @action(detail=False, methods=['POST'], serializer_class=BlogPostSerializer)
+    def create_custom(self, request):
+        # Verificar si el usuario está autenticado
+        if not request.user.is_authenticated:
+            raise NotAuthenticated("Debes estar autenticado para crear un post.")
+
+        # Serializar y crear el post
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(author=request.user)  # Asociamos el post al usuario
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['POST', 'GET'], serializer_class=LikeSerializer)
     def like(self, request, pk):
@@ -103,6 +118,9 @@ class BlogPostViewSet(ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"detail": "Método no permitido."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+
+    
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -139,6 +157,7 @@ class LikeViewSet(ModelViewSet):
         return queryset.distinct()
 
 
+
 class CommentViewSet(ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
@@ -147,6 +166,8 @@ class CommentViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['post', 'user']
 
+
+    
     def perform_create(self, serializer):
         if not self.request.user.is_authenticated:
             raise NotAuthenticated("Debes estar autenticado para comentar.")

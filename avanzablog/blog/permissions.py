@@ -6,7 +6,8 @@ class read_and_edit(permissions.BasePermission):
         # Solo los usuarios autenticados pueden crear posts, likes y comentarios
         if request.method == 'POST':
             return request.user.is_authenticated
-        return True
+        else:
+            return True
 
     def has_object_permission(self, request, view, obj):
         # Permitir acceso total a superusuarios
