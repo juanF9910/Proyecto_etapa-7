@@ -7,16 +7,17 @@ class LikeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Like
-        fields = ['id', 'post', 'user', 'username', 'created_at']  # Incluye el campo 'username'
+        fields = ['id', 'post', 'username', 'created_at']  # Incluye el campo 'username'
         read_only_fields = ['post', 'user']
 
 
 class CommentSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)  # Campo adicional
+    
     class Meta:
         model = Comment
-        fields = ['id', 'post','user', 'username', 'content', 'created_at']  # Eliminamos 'post' ya que no es necesario
-        read_only_fields = ['user']
+        fields = ['id', 'post', 'username', 'content', 'created_at']  # 'post' se dejará de incluir
+        read_only_fields = ['user', 'post']  # 'post' ya no es requerido en la solicitud
 
 
 class BlogPostSerializer(serializers.ModelSerializer):
@@ -26,11 +27,12 @@ class BlogPostSerializer(serializers.ModelSerializer):
     excerpt = serializers.SerializerMethodField()  # Campo calculado para el extracto del contenido
     equipo = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True, source='comment_set')  # Anidamos comentarios
+
     class Meta:
         model = BlogPost
         fields = [
             'id', 'author', 'username', 'equipo', 'title', 'content', 
-            'excerpt', 'post_permissions', 'created_at', 'updated_at',
+            'excerpt', 'post_permissions', 'created_at',
             'likes_count', 'comments_count', 'comments'
         ]
         read_only_fields = ['author']  # Excluimos 'author' del campo de entrada, ya que se asigna automáticamente
