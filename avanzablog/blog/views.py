@@ -21,21 +21,23 @@ class BlogPostListView(APIView):
         Construye y devuelve el conjunto de datos basado en las reglas de permisos del usuario.
         """
         user = request.user
-        queryset = BlogPost.objects.filter(post_permissions='public')  # Posts públicos
+
+        # Query inicial: Posts públicos
+        filters = Q(post_permissions='public')
 
         if user.is_authenticated:
-            queryset |= BlogPost.objects.filter(
-                Q(post_permissions='authenticated') | 
-                Q(author=user)
-            )
+            # Añadir posts autenticados y posts del autor
+            filters |= Q(post_permissions='authenticated') | Q(author=user)
+
+            # Añadir posts asociados a los grupos del usuario
             if user.groups.exists():
-                queryset |= BlogPost.objects.filter(
-                    post_permissions='team', 
-                    author__groups__in=user.groups.all()
-                )
+                filters |= Q(post_permissions='team', author__groups__in=user.groups.all())
 
-        return queryset.distinct()  # Elimina duplicados
+        # Construir el queryset final
+        queryset = BlogPost.objects.filter(filters).distinct().order_by('created_at')
 
+        return queryset
+    
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset(request)
         
@@ -223,7 +225,7 @@ class CommentDetailView(APIView):
 
     def post(self, request, pk):
         """
-        Crea o elimina un comentario asociado al post con el ID dado (pk).
+        Crea un comentario asociado al post con el ID dado (pk).
         """
         if not request.user.is_authenticated:
             return Response({"detail": "Debes estar autenticado para crear o eliminar un comentario."}, status=status.HTTP_401_UNAUTHORIZED)
@@ -234,15 +236,7 @@ class CommentDetailView(APIView):
         except BlogPost.DoesNotExist:
             return Response({"detail": "El post no existe."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Verificar si el usuario ya ha comentado en este post
-        existing_comment = Comment.objects.filter(post=post, user=request.user).first()
-
-        if existing_comment:
-            # Si ya existe un comentario, eliminarlo
-            existing_comment.delete()
-            return Response({"detail": "Comentario eliminado."}, status=status.HTTP_200_OK)
-
-        # Si no existe, crear el comentario
+    
         content = request.data.get("content")
         if not content:
             return Response({"detail": "El contenido del comentario es obligatorio."}, status=status.HTTP_400_BAD_REQUEST)
@@ -251,11 +245,16 @@ class CommentDetailView(APIView):
 
         serializer = CommentSerializer(comment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+
 
 
 class BlogPostCreateView(APIView):
     permission_classes = [read_and_edit]  # Permitir solo usuarios autenticados
 
+    def get(self, request):
+        return Response({"detail": "Este endpoint solo acepta solicitudes POST, cree su post con formato JSON"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
     def post(self, request):
         if not request.user.is_authenticated:
             return Response({"detail": "Debes estar autenticado para crear un post."}, status=status.HTTP_401_UNAUTHORIZED)
