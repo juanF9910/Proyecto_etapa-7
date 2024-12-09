@@ -52,18 +52,25 @@ class BlogPostListView(APIView):
         return paginator.get_paginated_response(serializer.data)
     
 class BlogPostDetailView(APIView):
+
     permission_classes = [read_and_edit]
 
     def get_object(self, pk):
         try:
-            return BlogPost.objects.get(pk=pk)
+            post = BlogPost.objects.get(pk=pk)
         except BlogPost.DoesNotExist:
             raise Http404("El post no se encuentra o no tienes permiso para verlo.")
+        
+        # Check object-level permissions
+        if not self.check_object_permissions(self.request, post) and not self.request.user.is_superuser:
+            raise PermissionDenied("No tienes permiso para ver este post.")
+        
+        return post
 
     def get(self, request, pk):
         post = self.get_object(pk)
         serializer = BlogPostSerializer(post)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, pk):
         post = self.get_object(pk)
@@ -74,7 +81,7 @@ class BlogPostDetailView(APIView):
         serializer = BlogPostSerializer(post, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
@@ -133,10 +140,12 @@ class LikeDetailView(APIView):
         except BlogPost.DoesNotExist:
             raise Http404("El post no existe o no tienes permiso para verlo.")
         
+        if not self.check_object_permissions(self.request, post) and not self.request.user.is_superuser:
+            raise PermissionDenied("No tienes permiso para ver los likes de este post.")
         # Obtiene los 'likes' asociados al post
         likes = Like.objects.filter(post=post)
         serializer = LikeSerializer(likes, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, pk):
         """
@@ -167,33 +176,34 @@ class LikeDetailView(APIView):
 
 
 
-    
 class CommentListView(APIView):
     permission_classes = [read_and_edit]  # Permitir acceso público para lectura
 
-    
     def get_queryset(self, request):
         """
         Construye y devuelve el conjunto de datos basado en las reglas de permisos del usuario.
         """
-        queryset = Comment.objects.all()
+        user = request.user
 
-        if request.user.is_authenticated:
-            user_groups = request.user.groups.all()
-            queryset = queryset.filter(
-                Q(post__post_permissions='public') |
-                Q(post__post_permissions='authenticated') |
-                Q(post__author=request.user) |
-                Q(post__post_permissions='team', post__author__groups__in=user_groups)
-            ).distinct()
-        else:
-            queryset = queryset.filter(post__post_permissions='public')
+        # Query inicial: Comentarios de posts públicos
+        filters = Q(post__post_permissions='public')
+
+        if user.is_authenticated:
+            # Añadir comentarios de posts autenticados, del autor o asociados al mismo equipo
+            filters |= Q(post__post_permissions='authenticated') | Q(post__author=user)
+
+            # Añadir comentarios de posts asociados a los grupos del usuario
+            if user.groups.exists():
+                filters |= Q(post__post_permissions='team', post__author__groups__in=user.groups.all())
+
+        # Construir el queryset final
+        queryset = Comment.objects.filter(filters).distinct()
 
         return queryset
 
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset(request)
-        
+
         # Inicializamos la paginación
         paginator = BlogPostPagination()
         result_page = paginator.paginate_queryset(queryset, request)
@@ -203,6 +213,7 @@ class CommentListView(APIView):
 
         # Retornamos la respuesta paginada
         return paginator.get_paginated_response(serializer.data)
+
 
 
 class CommentDetailView(APIView):
@@ -218,10 +229,15 @@ class CommentDetailView(APIView):
         except BlogPost.DoesNotExist:
             raise Http404("El post no existe o no tienes permiso para verlo.")
         
+        if not self.check_object_permissions(self.request, post) and not self.request.user.is_superuser:
+            raise PermissionDenied("No tienes permiso para ver los comentarios de este post.")
+        
         # Obtiene los comentarios asociados al post
         comments = Comment.objects.filter(post=post)
         serializer = CommentSerializer(comments, many=True)
-        return Response(serializer.data)
+        if not comments:
+            return Response({"detail": "No hay comentarios para este post."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, pk):
         """

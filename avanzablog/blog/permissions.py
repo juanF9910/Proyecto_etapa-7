@@ -1,7 +1,7 @@
 from rest_framework import permissions
 
 class read_and_edit(permissions.BasePermission):
-    
+
     def has_permission(self, request, view):
         # Solo los usuarios autenticados pueden crear posts, likes y comentarios
         if request.method == 'POST':
@@ -47,7 +47,8 @@ class read_and_edit(permissions.BasePermission):
                 return False
 
         # Permisos de los likes y los comentarios
-        if hasattr(obj, 'post'):
+        elif hasattr(obj, 'post'):
+            # Acceso público para comentarios si el post es público
             if request.method in permissions.SAFE_METHODS:
                 if obj.post.post_permissions == 'public':
                     return True
@@ -62,7 +63,7 @@ class read_and_edit(permissions.BasePermission):
                     return False
 
             # Permitir si el usuario es el autor del comentario o es superusuario
-            if request.method in ['PUT', 'PATCH', 'DELETE']:
+            elif request.method in ['PUT', 'PATCH', 'DELETE']:
                 if obj.user == request.user:
                     return True
                 
