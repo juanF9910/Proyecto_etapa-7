@@ -139,9 +139,9 @@ class LikeDetailView(APIView):
             post = BlogPost.objects.get(pk=pk)
         except BlogPost.DoesNotExist:
             raise Http404("El post no existe o no tienes permiso para verlo.")
-        
-        if not self.check_object_permissions(self.request, post) and not self.request.user.is_superuser:
+        if post.author != request.user and not self.check_object_permissions(self.request, post) and not self.request.user.is_superuser:
             raise PermissionDenied("No tienes permiso para ver los likes de este post.")
+
         # Obtiene los 'likes' asociados al post
         likes = Like.objects.filter(post=post)
         serializer = LikeSerializer(likes, many=True)
@@ -229,8 +229,10 @@ class CommentDetailView(APIView):
         except BlogPost.DoesNotExist:
             raise Http404("El post no existe o no tienes permiso para verlo.")
         
-        if not self.check_object_permissions(self.request, post) and not self.request.user.is_superuser:
-            raise PermissionDenied("No tienes permiso para ver los comentarios de este post.")
+        if post.author != request.user and not self.check_object_permissions(self.request, post) and not self.request.user.is_superuser:
+            raise PermissionDenied("No tienes permiso para ver los likes de este post.")
+
+
         
         # Obtiene los comentarios asociados al post
         comments = Comment.objects.filter(post=post)
@@ -261,15 +263,16 @@ class CommentDetailView(APIView):
 
         serializer = CommentSerializer(comment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
-
-
 
 class BlogPostCreateView(APIView):
     permission_classes = [read_and_edit]  # Permitir solo usuarios autenticados
 
     def get(self, request):
-        return Response({"detail": "Este endpoint solo acepta solicitudes POST, cree su post con formato JSON"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        if not request.user.is_authenticated:
+            return Response({"detail": "Debes estar autenticado para crear un post."}, status=status.HTTP_401_UNAUTHORIZED)
+                            
+        return Response({"detail": "Este endpoint solo acepta solicitudes POST, cree su post con formato JSON"}, status=status.HTTP_200_OK)
     
     def post(self, request):
         if not request.user.is_authenticated:
