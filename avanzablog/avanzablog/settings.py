@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "blog",
     "drf_spectacular",
     "django_filters",
+    "django_extensions",
 ]
 
 MIDDLEWARE = [

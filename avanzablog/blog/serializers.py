@@ -2,13 +2,7 @@ from rest_framework import serializers
 from .models import BlogPost, Like, Comment
 
 
-class LikeSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username', read_only=True)  # Campo adicional
 
-    class Meta:
-        model = Like
-        fields = ['id', 'post', 'username', 'created_at']  # Incluye el campo 'username'
-        read_only_fields = ['post', 'user']
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -18,6 +12,8 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ['id', 'post', 'username', 'content', 'created_at']  # 'post' se dejará de incluir
         read_only_fields = ['user', 'post']  # 'post' ya no es requerido en la solicitud
+
+
 
 
 class BlogPostSerializer(serializers.ModelSerializer):
@@ -52,3 +48,13 @@ class BlogPostSerializer(serializers.ModelSerializer):
     def get_equipo(self, obj): 
         grupo = obj.author.groups.first()
         return grupo.name if grupo else None
+
+
+class LikeSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)  # Campo adicional
+    #post = BlogPostSerializer(read_only=True)  # Serializador anidado para incluir detalles del post
+
+    class Meta:
+        model = Like
+        fields = ['id','post', 'username', 'created_at']  # Incluye el campo 'post' serializado
+        read_only_fields = ['post', 'user']

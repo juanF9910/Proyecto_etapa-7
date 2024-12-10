@@ -41,11 +41,11 @@ class BlogPostListView(APIView):
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset(request)
         
+        if not queryset.exists():
+            return Response({"detail": "No hay posts disponibles."}, status=status.HTTP_404_NOT_FOUND)
         # Initialize the paginator
         paginator = BlogPostPagination()
         result_page = paginator.paginate_queryset(queryset, request)
-
-        # Serialize the paginated data
         serializer = BlogPostSerializer(result_page, many=True)
 
         # Return the paginated response
@@ -55,20 +55,19 @@ class BlogPostDetailView(APIView):
 
     permission_classes = [read_and_edit]
 
-    def get_object(self, pk):
+
+    def get(self, request, pk):
+        
         try:
             post = BlogPost.objects.get(pk=pk)
         except BlogPost.DoesNotExist:
             raise Http404("El post no se encuentra o no tienes permiso para verlo.")
-        
-        # Check object-level permissions
-        if not self.check_object_permissions(self.request, post) and not self.request.user.is_superuser:
-            raise PermissionDenied("No tienes permiso para ver este post.")
-        
-        return post
 
-    def get(self, request, pk):
-        post = self.get_object(pk)
+    
+
+        #post = self.get_object(pk)
+        #if post.author != request.user and not self.check_object_permissions(self.request, post) and not self.request.user.is_superuser:
+            #raise PermissionDenied("No tienes permiso para ver los likes de este post.")
         serializer = BlogPostSerializer(post)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -85,7 +84,7 @@ class BlogPostDetailView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        post = self.get_object(pk)
+        post= BlogPost.objects.get(pk=pk)
         if post.author != request.user and not request.user.is_superuser:
             raise PermissionDenied("No tienes permiso para eliminar este post.")
         post.delete()
@@ -139,8 +138,8 @@ class LikeDetailView(APIView):
             post = BlogPost.objects.get(pk=pk)
         except BlogPost.DoesNotExist:
             raise Http404("El post no existe o no tienes permiso para verlo.")
-        if post.author != request.user and not self.check_object_permissions(self.request, post) and not self.request.user.is_superuser:
-            raise PermissionDenied("No tienes permiso para ver los likes de este post.")
+        #if post.author != request.user and not self.check_object_permissions(self.request, post) and not self.request.user.is_superuser:
+            #raise PermissionDenied("No tienes permiso para ver los likes de este post.")
 
         # Obtiene los 'likes' asociados al post
         likes = Like.objects.filter(post=post)
@@ -229,8 +228,8 @@ class CommentDetailView(APIView):
         except BlogPost.DoesNotExist:
             raise Http404("El post no existe o no tienes permiso para verlo.")
         
-        if post.author != request.user and not self.check_object_permissions(self.request, post) and not self.request.user.is_superuser:
-            raise PermissionDenied("No tienes permiso para ver los likes de este post.")
+        #if post.author != request.user and not self.check_object_permissions(self.request, post) and not self.request.user.is_superuser:
+            #raise PermissionDenied("No tienes permiso para ver los likes de este post.")
 
 
         
@@ -263,6 +262,8 @@ class CommentDetailView(APIView):
 
         serializer = CommentSerializer(comment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+
 
 class BlogPostCreateView(APIView):
     permission_classes = [read_and_edit]  # Permitir solo usuarios autenticados
@@ -284,3 +285,30 @@ class BlogPostCreateView(APIView):
             serializer.save(author=request.user)  # El autor se asigna automáticamente
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CommentDeleteView(APIView):
+
+
+    def get(self,request,pk):
+
+        try :
+            comment = Comment.objects.get(id=pk)
+        except Comment.DoesNotExist:
+            raise Http404("El comentario no se encuentra o no tienes permiso para verlo.")
+        
+    
+        if comment.user != request.user and not request.user.is_superuser:
+            raise PermissionDenied("No tienes permiso para eliminar este comentario.")
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def delete(self,request,pk):
+
+        try:
+            comment = Comment.objects.get(id=pk)
+        except Comment.DoesNotExist:
+            raise Http404("El comentario no se encuentra o no tienes permiso para verlo.")
+        if comment.user != request.user and not request.user.is_superuser:
+            raise PermissionDenied("No tienes permiso para eliminar este comentario.")
+        comment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
