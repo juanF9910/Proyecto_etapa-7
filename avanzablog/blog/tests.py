@@ -164,6 +164,7 @@ class LikeListViewTest(TestCase):
         self.assertIn(self.author_post.id, post_ids)
 
 class CommentListViewTest(TestCase):
+    
     def setUp(self):
         # Crear usuarios
         self.author = User.objects.create_user(username='author', password='password')
