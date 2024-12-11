@@ -1,10 +1,6 @@
 from rest_framework import serializers
 from .models import BlogPost, Like, Comment
 
-
-
-
-
 class CommentSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)  # Campo adicional
     
@@ -12,8 +8,6 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ['id', 'post', 'username', 'content', 'created_at']  # 'post' se dejará de incluir
         read_only_fields = ['user', 'post']  # 'post' ya no es requerido en la solicitud
-
-
 
 
 class BlogPostSerializer(serializers.ModelSerializer):

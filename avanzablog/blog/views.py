@@ -14,6 +14,7 @@ from rest_framework import viewsets
 from .pagination import BlogPostPagination, LikePagination
 
 class BlogPostListView(APIView):
+    
     permission_classes = [read_and_edit]
 
     def get_queryset(self, request):
@@ -21,6 +22,7 @@ class BlogPostListView(APIView):
         Construye y devuelve el conjunto de datos basado en las reglas de permisos del usuario.
         """
         user = request.user
+
 
         # Query inicial: Posts públicos
         filters = Q(post_permissions='public')
@@ -52,31 +54,25 @@ class BlogPostListView(APIView):
         return paginator.get_paginated_response(serializer.data)
     
 class BlogPostDetailView(APIView):
-
     permission_classes = [read_and_edit]
 
+   
+    def get_object(self, pk):
+        try:
+            return BlogPost.objects.get(pk=pk)
+        except BlogPost.DoesNotExist:
+            # Return a custom 404 response with a message
+            return Response({"detail": "El post no se encuentra."}, status=status.HTTP_404_NOT_FOUND)
 
     def get(self, request, pk):
-        
-        try:
-            post = BlogPost.objects.get(pk=pk)
-        except BlogPost.DoesNotExist:
-            raise Http404("El post no se encuentra o no tienes permiso para verlo.")
-
-    
-
-        #post = self.get_object(pk)
-        #if post.author != request.user and not self.check_object_permissions(self.request, post) and not self.request.user.is_superuser:
-            #raise PermissionDenied("No tienes permiso para ver los likes de este post.")
+        post = self.get_object(pk)
+        self.check_object_permissions(request, post)  # Valida permisos
         serializer = BlogPostSerializer(post)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data)
 
     def patch(self, request, pk):
         post = self.get_object(pk)
-        if post.author != request.user and not request.user.is_superuser:
-            raise PermissionDenied("No tienes permiso para editar este post.")
-        
-        # Configuramos el serializer con `partial=True` para actualizaciones parciales
+        self.check_object_permissions(request, post)  # Verifica permisos para editar
         serializer = BlogPostSerializer(post, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -84,11 +80,12 @@ class BlogPostDetailView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        post= BlogPost.objects.get(pk=pk)
-        if post.author != request.user and not request.user.is_superuser:
-            raise PermissionDenied("No tienes permiso para eliminar este post.")
+        post = self.get_object(pk)
+        self.check_object_permissions(request, post)  # Verifica permisos, si no tiene permisos lanza una excepción PermissionDenied 
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 
 
 class LikeListView(APIView):
@@ -130,48 +127,35 @@ class LikeListView(APIView):
 class LikeDetailView(APIView):
     permission_classes = [read_and_edit]
 
-    def get(self, request, pk):
-        """
-        Obtiene los 'likes' asociados al post con el ID dado (pk).
-        """
+    def get_object(self, pk):
         try:
-            post = BlogPost.objects.get(pk=pk)
+            return BlogPost.objects.get(pk=pk)
         except BlogPost.DoesNotExist:
-            raise Http404("El post no existe o no tienes permiso para verlo.")
-        #if post.author != request.user and not self.check_object_permissions(self.request, post) and not self.request.user.is_superuser:
-            #raise PermissionDenied("No tienes permiso para ver los likes de este post.")
-
-        # Obtiene los 'likes' asociados al post
+            raise Http404("El post no se encuentra.")
+        
+    def get(self, request, pk):
+        post = self.get_object(pk)
+        self.check_object_permissions(request, post)  # Valida permisos del post
         likes = Like.objects.filter(post=post)
+        for like in likes:
+            self.check_object_permissions(request, like)
         serializer = LikeSerializer(likes, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, pk):
-        """
-        Crea o elimina un like asociado al post con el ID dado (pk).
-        """
-        if not request.user.is_authenticated:
-            return Response({"detail": "Debes estar autenticado para dar o quitar un like."}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Validar que el post exista
-        try:
-            post = BlogPost.objects.get(id=pk)
-        except BlogPost.DoesNotExist:
-            return Response({"detail": "El post no existe."}, status=status.HTTP_404_NOT_FOUND)
-
-        # Verificar si el usuario ya ha dado like a este post
+        post = self.get_object(pk)
+        self.check_object_permissions(request, post)  # Validate post permissions
+        # Check if the user already liked this post
         existing_like = Like.objects.filter(post=post, user=request.user).first()
-
         if existing_like:
-            # Si ya existe un like, eliminarlo
             existing_like.delete()
             return Response({"detail": "Like eliminado."}, status=status.HTTP_200_OK)
-
-        # Si no existe, crear el like
+        
         like = Like.objects.create(post=post, user=request.user)
-
         serializer = LikeSerializer(like)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
 
 
 
@@ -219,55 +203,45 @@ class CommentDetailView(APIView):
 
     permission_classes = [read_and_edit]
 
-    def get(self, request, pk):
-        """
-        Obtiene los comentarios asociados al post con el ID dado (pk).
-        """
+    def get_object(self, pk):
         try:
-            post = BlogPost.objects.get(pk=pk)
+            return BlogPost.objects.get(pk=pk)
         except BlogPost.DoesNotExist:
-            raise Http404("El post no existe o no tienes permiso para verlo.")
-        
-        #if post.author != request.user and not self.check_object_permissions(self.request, post) and not self.request.user.is_superuser:
-            #raise PermissionDenied("No tienes permiso para ver los likes de este post.")
+            raise Http404("El post no se encuentra.")
 
-
-        
-        # Obtiene los comentarios asociados al post
+    def get(self, request, pk):
+        post = self.get_object(pk)
+        self.check_object_permissions(request, post)  # This should raise an exception for unauthorized users
         comments = Comment.objects.filter(post=post)
-        serializer = CommentSerializer(comments, many=True)
         if not comments:
             return Response({"detail": "No hay comentarios para este post."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            for comment in comments:
+                self.check_object_permissions(request, comment)  # Check permissions for each comment
+        serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    
     def post(self, request, pk):
         """
         Crea un comentario asociado al post con el ID dado (pk).
         """
-        if not request.user.is_authenticated:
-            return Response({"detail": "Debes estar autenticado para crear o eliminar un comentario."}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Validar que el post exista
-        try:
-            post = BlogPost.objects.get(id=pk)
-        except BlogPost.DoesNotExist:
-            return Response({"detail": "El post no existe."}, status=status.HTTP_404_NOT_FOUND)
-
-    
+        post= self.get_object(pk)
+        self.check_object_permissions(request, post)  # Valida permisos del post
         content = request.data.get("content")
         if not content:
             return Response({"detail": "El contenido del comentario es obligatorio."}, status=status.HTTP_400_BAD_REQUEST)
         
         comment = Comment.objects.create(post=post, user=request.user, content=content)
-
-        serializer = CommentSerializer(comment)
+        self.check_object_permissions(request, comment)  # Valida permisos del comentario antes de serializar
+        serializer = CommentSerializer(comment) #si el comentario cumple con los permisos, se serializa
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
 
-
 class BlogPostCreateView(APIView):
-    permission_classes = [read_and_edit]  # Permitir solo usuarios autenticados
 
+    permission_classes = [read_and_edit]  # Permitir solo usuarios autenticados
+        
     def get(self, request):
 
         if not request.user.is_authenticated:
@@ -276,6 +250,7 @@ class BlogPostCreateView(APIView):
         return Response({"detail": "Este endpoint solo acepta solicitudes POST, cree su post con formato JSON"}, status=status.HTTP_200_OK)
     
     def post(self, request):
+
         if not request.user.is_authenticated:
             return Response({"detail": "Debes estar autenticado para crear un post."}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -288,27 +263,22 @@ class BlogPostCreateView(APIView):
 
 class CommentDeleteView(APIView):
 
+    permission_classes = [read_and_edit]
+
+    def get_object(self, pk):
+        try:
+            return Comment.objects.get(pk=pk)
+        except Comment.DoesNotExist:
+            raise Http404("El comentario no se encuentra.")
 
     def get(self,request,pk):
-
-        try :
-            comment = Comment.objects.get(id=pk)
-        except Comment.DoesNotExist:
-            raise Http404("El comentario no se encuentra o no tienes permiso para verlo.")
-        
-    
-        if comment.user != request.user and not request.user.is_superuser:
-            raise PermissionDenied("No tienes permiso para eliminar este comentario.")
+        comment= self.get_object(pk)
+        self.check_object_permissions(request, comment)
         serializer = CommentSerializer(comment)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def delete(self,request,pk):
-
-        try:
-            comment = Comment.objects.get(id=pk)
-        except Comment.DoesNotExist:
-            raise Http404("El comentario no se encuentra o no tienes permiso para verlo.")
-        if comment.user != request.user and not request.user.is_superuser:
-            raise PermissionDenied("No tienes permiso para eliminar este comentario.")
+        comment= self.get_object(pk)
+        self.check_object_permissions(request, comment)
         comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -64,15 +64,16 @@ class read_and_edit(permissions.BasePermission):
 
             # Permitir si el usuario es el autor del comentario o es superusuario
             elif request.method in ['PUT', 'PATCH', 'DELETE']:
+
+                user_group = request.user.groups.first()
                 if obj.user == request.user:
                     return True
-                
-                user_group = request.user.groups.first()
-                if user_group:
+                elif user_group:
                     # Verificar si el autor del comentario pertenece al mismo grupo
                     return obj.post.author.groups.filter(id=user_group.id).exists()
 
-                return False
+                else :
+                    return False
 
         # Por defecto, denegar acceso si no es BlogPost ni Comment
         return False
