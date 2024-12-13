@@ -12,6 +12,7 @@ from rest_framework.exceptions import PermissionDenied
 from .serializers import BlogPostSerializer, LikeSerializer, CommentSerializer
 
 class BlogPostListViewTest(TestCase):
+    
     def setUp(self):
         # Create APIRequestFactory
         self.factory = APIRequestFactory()
@@ -1052,9 +1053,6 @@ class LikeSerializerTest(APITestCase):
         # Check if 'user' and 'post' are correctly assigned
         self.assertEqual(like.user, self.user1)  # Check if 'user' is correctly assigned
         self.assertEqual(like.post, self.post)  # Check if 'post' is correctly assigned
-
-
-
 
     def test_serializer_multiple_likes(self):
         """Test if the serializer correctly serializes multiple likes."""

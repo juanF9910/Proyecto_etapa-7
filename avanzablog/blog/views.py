@@ -277,10 +277,11 @@ class CommentDeleteView(APIView):
         serializer = CommentSerializer(comment)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def delete(self,request,pk):
-        comment= self.get_object(pk)
+    def delete(self, request, pk):
+        comment = self.get_object(pk)
         self.check_object_permissions(request, comment)
         comment.delete()
+        print(f"Deleted comment: {comment.id}")  # Debugging
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

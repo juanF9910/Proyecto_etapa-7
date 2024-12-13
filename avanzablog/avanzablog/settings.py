@@ -79,10 +79,25 @@ WSGI_APPLICATION = "avanzablog.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
+
+
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",  # Use the PostgreSQL backend
+        "NAME": "datos_avanza",             # Replace with your database name
+        "USER": "user_avanza",             # Replace with your PostgreSQL username
+        "PASSWORD": "Hola1234",              # Replace with your PostgreSQL password
+        "HOST": "localhost",                      # Use 'localhost' for local development, or provide your DB server's IP
+        "PORT": "5432",        
+        "TEST": {
+            "NAME": "test_db",
+        }                                      # Default PostgreSQL port
     }
 }
 
