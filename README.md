@@ -58,16 +58,18 @@ to create a user just click on add and stablish the username and the password
 ![imagen](https://github.com/user-attachments/assets/40b965fa-f8ff-41c5-8ede-495e55eb68a6)
 
 
+## GROUPS 
+
+### CREATE A GROUP
+
+In the url http://127.0.0.1:8000/admin, click on  add groups, define the name of the group and click on save and continue editing
 
 ### ASSIGN USERS TO THE GROUPS 
 
-## GROUPS 
-
-the group creation is managed by the default Djando Rest Framework, in order to create a group you need to be a super user.
+On a specific user's tab choose the group you want to assign the user and then the rightarrow
 
 
-
-### CREATE A GROUP
+![imagen](https://github.com/user-attachments/assets/227d09c6-75b9-4eaf-af1c-5695150817b3)
 
 
 
