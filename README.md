@@ -37,7 +37,11 @@ follow the steps to stablish the name, password. To log in as a superuser, run i
 python manage.py runserver 
 
 you will see this
+
+
 ![imagen](https://github.com/user-attachments/assets/22d8eb44-1044-4163-b883-22996d56fa6e)
+
+
 then just execute ctrl+click on http://127.0.0.1:8000/ 
 
 ### CREATE A USER
