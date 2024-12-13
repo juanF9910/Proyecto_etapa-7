@@ -171,9 +171,17 @@ http://127.0.0.1:8000/api/likes/post_id
 
 ### LIKE ON A POST
 
+To like a specific post go to the url 
 
+http://127.0.0.1:8000/api/likes/post_id
+
+and just click on the post button, you dont need to add anything on the Json field 
+
+![imagen](https://github.com/user-attachments/assets/00848873-bb85-4d9f-ade0-f23c4d70c763)
 
 ### DISLIKE ON A POST
+
+if you already liked a post and want to remove the like just follow the same steps as creating a like and automatically it will be deleted. 
 
 
 
