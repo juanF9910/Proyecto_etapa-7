@@ -1,14 +1,36 @@
 # Proyecto_etapa-7
-The objective of this lab is to create a robust blogging platform using Django that includes user authentication, permissions, and a RESTful API
+The objective of this app is to allow users to create posts on a blog, and interact with others posts leaving likes and comments. According to the posts permissions which are public, authenticated, author or team. 
 
+##CLONE THE REPO
+In order to clone this repo you should go to your terminal and execute the following: 
+
+git clone: git@github.com:juanF9910/Proyecto_etapa-7.git
+
+##SETTLELING THE ENVIROMENT
+
+after cloning the repo, create a virtual enviroment into the directory of the proyect
+
+python -m venv env 
+
+the enviroment is created already, now we need to activate it 
+
+source env/bin/activate
+
+In order to install all the needed libraries in the enviroment execute
+
+pip install -r requirements.txt
+
+Now everything is ready to work
 
 ## GROUPS 
+
+the group creation is managed by the default Djando Rest Framework, in order to create a group you need to be a super user. 
+To create a super user 
 
 ### CREATE A GROUP
 
 ## USERS
 
-![imagen](https://github.com/user-attachments/assets/8c270c4c-1985-4516-84d3-cc5929161de9)
 
 
 ### CREATE A USER
