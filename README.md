@@ -6,7 +6,7 @@ In order to clone this repo you should go to your terminal and execute the follo
 
 git clone: git@github.com:juanF9910/Proyecto_etapa-7.git
 
-## SETTLELING THE ENVIROMENT
+## SETTLING THE ENVIRONMENT
 
 after cloning the repo, create a virtual enviroment into the directory of the proyect
 
