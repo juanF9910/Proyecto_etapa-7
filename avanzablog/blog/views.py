@@ -125,6 +125,7 @@ class LikeListView(APIView):
 
     
 class LikeDetailView(APIView):
+
     permission_classes = [read_and_edit]
 
     def get_object(self, pk):
@@ -144,18 +145,17 @@ class LikeDetailView(APIView):
 
     def post(self, request, pk):
         post = self.get_object(pk)
-        self.check_object_permissions(request, post)  # Validate post permissions
-        # Check if the user already liked this post
+        self.check_object_permissions(request, post)
         existing_like = Like.objects.filter(post=post, user=request.user).first()
+        #self.check_object_permissions(request, existing_like)  # Valida permisos del like
         if existing_like:
             existing_like.delete()
             return Response({"detail": "Like eliminado."}, status=status.HTTP_200_OK)
         
         like = Like.objects.create(post=post, user=request.user)
+        #self.check_object_permissions(request, like)  # Valida permisos del like
         serializer = LikeSerializer(like)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
 
 
 
@@ -233,33 +233,33 @@ class CommentDetailView(APIView):
             return Response({"detail": "El contenido del comentario es obligatorio."}, status=status.HTTP_400_BAD_REQUEST)
         
         comment = Comment.objects.create(post=post, user=request.user, content=content)
-        self.check_object_permissions(request, comment)  # Valida permisos del comentario antes de serializar
+        #self.check_object_permissions(request, comment)  # Valida permisos del comentario antes de serializar
         serializer = CommentSerializer(comment) #si el comentario cumple con los permisos, se serializa
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
 
 class BlogPostCreateView(APIView):
 
-    permission_classes = [read_and_edit]  # Permitir solo usuarios autenticados
+        permission_classes = [read_and_edit]  # Permitir solo usuarios autenticados
+            
+        def get(self, request):
+
+            if not request.user.is_authenticated:
+                return Response({"detail": "Debes estar autenticado para crear un post."}, status=status.HTTP_401_UNAUTHORIZED)
+                                
+            return Response({"detail": "Este endpoint solo acepta solicitudes POST, cree su post con formato JSON"}, status=status.HTTP_200_OK)
         
-    def get(self, request):
+        def post(self, request):
 
-        if not request.user.is_authenticated:
-            return Response({"detail": "Debes estar autenticado para crear un post."}, status=status.HTTP_401_UNAUTHORIZED)
-                            
-        return Response({"detail": "Este endpoint solo acepta solicitudes POST, cree su post con formato JSON"}, status=status.HTTP_200_OK)
-    
-    def post(self, request):
+            if not request.user.is_authenticated:
+                return Response({"detail": "Debes estar autenticado para crear un post."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        if not request.user.is_authenticated:
-            return Response({"detail": "Debes estar autenticado para crear un post."}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Crear el post y asignar el autor automáticamente
-        serializer = BlogPostSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(author=request.user)  # El autor se asigna automáticamente
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Crear el post y asignar el autor automáticamente
+            serializer = BlogPostSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(author=request.user)  # El autor se asigna automáticamente
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CommentDeleteView(APIView):
 
@@ -282,3 +282,5 @@ class CommentDeleteView(APIView):
         self.check_object_permissions(request, comment)
         comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+

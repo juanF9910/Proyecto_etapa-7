@@ -1,6 +1,8 @@
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
+
+#paginación para los posts y comentarios
 class BlogPostPagination(PageNumberPagination):
     page_size = 10  # Tamaño de página predeterminado
     page_size_query_param = 'page_size'  # Parámetro para personalizar tamaño de página
@@ -17,6 +19,8 @@ class BlogPostPagination(PageNumberPagination):
             'results': data,
         })
 
+
+#paginación para los likes
 class LikePagination(PageNumberPagination):
     page_size = 20  # Tamaño de página predeterminado
     page_size_query_param = 'page_size'  # Parámetro para personalizar tamaño de página
