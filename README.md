@@ -43,14 +43,21 @@ you will see this
 
 
 then just execute ctrl+click on http://127.0.0.1:8000/
+
+
 To sign in as a super user go to http://127.0.0.1:8000/admin and just put the credentials 
 
 ![imagen](https://github.com/user-attachments/assets/38d00ec8-8855-4c3b-8f16-07a61af9a2d1)
 
 
-
-
 ### CREATE A USER
+
+to create a user just click on add and stablish the username and the password
+
+
+![imagen](https://github.com/user-attachments/assets/40b965fa-f8ff-41c5-8ede-495e55eb68a6)
+
+
 
 ### ASSIGN USERS TO THE GROUPS 
 
