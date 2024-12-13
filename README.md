@@ -75,9 +75,26 @@ On a specific user's tab choose the group you want to assign the user and then t
 
 ## POSTS
 
-### LIST ALL THE POSTS ON THE BLOG 
-
 ### CREATE A POST
+
+in order to create a post you need to be loged in as a user
+
+go to the url http://127.0.0.1:8000/api/posts/create/ and create your post with a json format  
+
+{
+    "title": "Exploring REST Framework",
+    "content": "This post discusses how to use Django REST Framework to build robust APIs effectively.",
+    "post_permissions": "public"  // Example values: "public", "authenticated", "author", "team"
+}
+
+and click on post
+
+![imagen](https://github.com/user-attachments/assets/e9043d26-ff9e-49fc-a9c3-6b156e9f4522)
+
+
+
+
+### LIST ALL THE POSTS ON THE BLOG 
 
 ### MODIFY A POST
 
