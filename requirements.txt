@@ -3,6 +3,7 @@ asttokens==3.0.0
 attrs==24.2.0
 decorator==5.1.1
 Django==5.1.4
+django-extensions==3.2.3
 django-filter==24.3
 django-rest-framework==0.1.0
 djangorestframework==3.15.2
