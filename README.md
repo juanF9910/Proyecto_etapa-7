@@ -1,12 +1,12 @@
 # Proyecto_etapa-7
 The objective of this app is to allow users to create posts on a blog, and interact with others posts leaving likes and comments. According to the posts permissions which are public, authenticated, author or team. 
 
-##CLONE THE REPO
+## CLONE THE REPO
 In order to clone this repo you should go to your terminal and execute the following: 
 
 git clone: git@github.com:juanF9910/Proyecto_etapa-7.git
 
-##SETTLELING THE ENVIROMENT
+## SETTLELING THE ENVIROMENT
 
 after cloning the repo, create a virtual enviroment into the directory of the proyect
 
@@ -24,7 +24,7 @@ Now everything is ready to work
 
 ## USERS
 
-###CREATE A SUPERUSER
+### CREATE A SUPERUSER
 
 To manage the user creation first we need to start by creating a superuser. Go to
 
@@ -42,7 +42,13 @@ you will see this
 ![imagen](https://github.com/user-attachments/assets/22d8eb44-1044-4163-b883-22996d56fa6e)
 
 
-then just execute ctrl+click on http://127.0.0.1:8000/ 
+then just execute ctrl+click on http://127.0.0.1:8000/
+To sign in as a super user go to http://127.0.0.1:8000/admin and just put the credentials 
+
+![imagen](https://github.com/user-attachments/assets/38d00ec8-8855-4c3b-8f16-07a61af9a2d1)
+
+
+
 
 ### CREATE A USER
 
