@@ -22,20 +22,37 @@ pip install -r requirements.txt
 
 Now everything is ready to work
 
-## GROUPS 
-
-the group creation is managed by the default Djando Rest Framework, in order to create a group you need to be a super user. 
-To create a super user 
-
-### CREATE A GROUP
-
 ## USERS
 
+###CREATE A SUPERUSER
 
+To manage the user creation first we need to start by creating a superuser. Go to
+
+Proyect_etapa-7/avanzablog and execute
+
+python manage.py createsuperuser 
+
+follow the steps to stablish the name, password. To log in as a superuser, run in the console the following
+
+python manage.py runserver 
+
+you will see this
+![imagen](https://github.com/user-attachments/assets/22d8eb44-1044-4163-b883-22996d56fa6e)
+then just execute ctrl+click on http://127.0.0.1:8000/ 
 
 ### CREATE A USER
 
 ### ASSIGN USERS TO THE GROUPS 
+
+## GROUPS 
+
+the group creation is managed by the default Djando Rest Framework, in order to create a group you need to be a super user.
+
+
+
+### CREATE A GROUP
+
+
 
 ## POSTS
 
