@@ -67,8 +67,10 @@ class BlogPostDetailView(APIView):
         Retrieve the BlogPost object or raise 404 if it does not exist.
         """
         try:
-            return BlogPost.objects.get(pk=pk)
+            post= BlogPost.objects.get(pk=pk)
+            return post
         except BlogPost.DoesNotExist:
+            print("No se encuentra el post")
             raise Http404("El post no se encuentra.")
 
     def get(self, request, pk):
@@ -85,6 +87,8 @@ class BlogPostDetailView(APIView):
 
     def patch(self, request, pk):
         post = self.get_object(pk)
+        print(post)
+        print(f"Received data: {request.data}")  
         
         try:
             # Check permissions for editing

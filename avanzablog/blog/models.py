@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from jsonschema import ValidationError
 
 class BlogPost(models.Model):
+    
     ACCESS_CHOICES = [
         ('none', 'None'),
         ('read only', 'Read Only'),
