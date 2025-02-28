@@ -90,8 +90,8 @@ CORS_ALLOW_METHODS = [
 ]
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7), # 7 days
     'ROTATE_REFRESH_TOKENS': True,  # Para que cada login genere un nuevo refresh
     'BLACKLIST_AFTER_ROTATION': True,  # El viejo refresh se invalida
     'ALGORITHM': 'HS256',
