@@ -1,7 +1,6 @@
 from rest_framework import permissions
 
 class BlogPostPermission(permissions.BasePermission):
-    
     """
     Custom permission to handle BlogPost access based on the permission fields:
     public, authenticated, team, and owner.
@@ -13,20 +12,19 @@ class BlogPostPermission(permissions.BasePermission):
             return True
 
         # Owner permissions (highest priority, always has full access)
-        elif obj.author == request.user:
+        if obj.author == request.user:
             return True
 
-        # Team permissions
-        elif request.user.is_authenticated and hasattr(obj, 'team_members') and request.user in obj.team_members():
+        # Team permissions (Check if user belongs to the same team as the author)
+        if request.user.is_authenticated and getattr(request.user, 'team', None) == getattr(obj.author, 'team', None):
             return self.check_permission(request, obj.team)
 
         # Authenticated permissions
-        elif request.user.is_authenticated:
+        if request.user.is_authenticated:
             return self.check_permission(request, obj.authenticated)
 
         # Public permissions (applies to all users)
-        else:
-            return self.check_permission(request, obj.is_public)
+        return self.check_permission(request, getattr(obj, 'is_public', 'none'))
 
     def check_permission(self, request, access_level):
         """
@@ -34,8 +32,8 @@ class BlogPostPermission(permissions.BasePermission):
         """
         if access_level == 'none':
             return False
-        elif access_level == 'read only':
+        if access_level == 'read only':
             return request.method in permissions.SAFE_METHODS  # Only GET, HEAD, and OPTIONS are allowed
-        elif access_level == 'read and edit':
+        if access_level == 'read and edit':
             return True  # All methods are allowed
         return False

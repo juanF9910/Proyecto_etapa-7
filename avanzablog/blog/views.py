@@ -269,7 +269,7 @@ class CommentDetailView(APIView):
         Crea un comentario asociado al post con el ID dado (pk).
         """
         post= self.get_post(pk)
-        self.check_object_permissions(request, post)  # Valida permisos del post
+        #self.check_object_permissions(request, post)  # Valida permisos del post
         content = request.data.get("content")
         if not content:
             return Response({"detail": "El contenido del comentario es obligatorio."}, status=status.HTTP_400_BAD_REQUEST)
