@@ -15,16 +15,24 @@ class BlogPostPermission(permissions.BasePermission):
         if obj.author == request.user:
             return True
 
-        # Team permissions (Check if user belongs to the same team as the author)
-        if request.user.is_authenticated and getattr(request.user, 'team', None) == getattr(obj.author, 'team', None):
-            return self.check_permission(request, obj.team)
+        # Team permissions (Check if user belongs to any of the author's groups)
+        if request.user.is_authenticated and hasattr(obj, 'team'):
+            user_groups = set(request.user.groups.all())
+            author_groups = set(obj.author.groups.all())
+
+            if user_groups & author_groups:  # Check if there's any group in common
+                return self.check_permission(request, obj.team)
 
         # Authenticated permissions
         if request.user.is_authenticated:
             return self.check_permission(request, obj.authenticated)
 
         # Public permissions (applies to all users)
-        return self.check_permission(request, getattr(obj, 'is_public', 'none'))
+        if hasattr(obj, 'is_public'):
+            return self.check_permission(request, obj.is_public)
+
+        # Default: No permission
+        return False
 
     def check_permission(self, request, access_level):
         """
