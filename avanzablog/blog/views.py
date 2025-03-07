@@ -141,8 +141,8 @@ class LikeListView(APIView):
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset(request)
 
-        if not queryset.exists():
-            return Response({"detail": "No hay likes disponibles."}, status=status.HTTP_404_NOT_FOUND)
+        # if not queryset.exists():
+        #     return Response({"detail": "No hay likes disponibles."}, status=status.HTTP_404_NOT_FOUND)
 
         # Paginate the queryset
         paginator = LikePagination()
@@ -152,7 +152,6 @@ class LikeListView(APIView):
         # Return the paginated response
         return paginator.get_paginated_response(serializer.data)
     
-
 
 class LikeDetailView(APIView):
     permission_classes = [BlogPostPermission]
@@ -281,36 +280,39 @@ class CommentDetailView(APIView):
 
 
 
-
-
-
 class BlogPostCreateView(APIView):
-    permission_classes = [BlogPostPermission]  # Restrict access based on custom permissions
+    #permission_classes = [BlogPostPermission]  # Restrict access based on custom permissions
 
-    def get(self, request):
-        """
-        Return a message indicating that this endpoint only accepts POST requests.
-        """
-        if not request.user.is_authenticated:
-            return Response({"detail": "Debes estar autenticado para crear un post."}, status=status.HTTP_401_UNAUTHORIZED)
+    # def get(self, request):
+    #     """
+    #     Return a message indicating that this endpoint only accepts POST requests.
+    #     """
+    #     if not request.user.is_authenticated:
+    #         return Response({"detail": "Debes estar autenticado para crear un post."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        return Response({"detail": "Este endpoint solo acepta solicitudes POST. Cree su post con formato JSON."}, status=status.HTTP_200_OK)
+    #     return Response({"detail": "Este endpoint solo acepta solicitudes POST. Cree su post con formato JSON."}, status=status.HTTP_200_OK)
 
     def post(self, request):
+        print("solicitud POST")
+        
         if not request.user.is_authenticated:
             return Response({"detail": "Debes estar autenticado para crear un post."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        self.check_permissions(request)  # Verifica permisos
-
-        print("Datos recibidos en el backend:", request.data)  # 👀 Verifica los datos en la consola
+        print("Usuario autenticado:", request.user)
+        print("Datos recibidos:", request.data)
 
         serializer = BlogPostSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         if serializer.is_valid():
-            serializer.save(author=request.user)
+            post = serializer.save(author=request.user)  # Cambia `author` si es `owner`
+            post.save()
+            print("Post creado con éxito:", post)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
-        print("Errores del serializer:", serializer.errors)  # 👀 Verifica los errores en la consola
+        print("Errores del serializer:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 

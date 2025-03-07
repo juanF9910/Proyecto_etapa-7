@@ -34,6 +34,7 @@ class BlogPostPermission(permissions.BasePermission):
         # Default: No permission
         return False
 
+
     def check_permission(self, request, access_level):
         """
         Helper method to determine if the request method is allowed based on access level.

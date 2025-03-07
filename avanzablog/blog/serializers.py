@@ -1,7 +1,5 @@
 from rest_framework import serializers
 from .models import BlogPost, Like, Comment
-
-
 from rest_framework import serializers
 from .models import BlogPost, Like, Comment
 
@@ -39,7 +37,6 @@ class BlogPostSerializer(serializers.ModelSerializer):
         """Returns the name of the author's first group."""
         grupo = obj.author.groups.first()
         return grupo.name if grupo else None
-
 
 
 class LikeSerializer(serializers.ModelSerializer):
